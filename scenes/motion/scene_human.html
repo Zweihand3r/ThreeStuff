@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, inittial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=chrome" />
+    <title>Human Motion</title>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #info {
+            position: absolute;
+            left: 1em;
+            top: 1em;
+            background: rgba(0, 0, 0, .8);
+            padding: .5em;
+            color: white;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div id="info">
+        w - Forward<br>
+        s - Back<br>
+        a - Turn Left<br>
+        d - Turn Right<br>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../res/three.js/three.js"></script>
+    <script src="../../res/three.js/OrbitControls.js"></script>
+    <script src="../../res/dat.gui/dat.gui.min.js"></script>
+
+    <script src="../components/player.js"></script>
+    <script src="../components/scene_basic.js"></script>
+    
+    <script>
+
+        const params = {
+            enableOrbitControls: true
+        }
+
+        const { canvas, renderer, scene, gui, cam_world, light_dir } = constructScene(params)
+
+        const player = new Player()
+        player.controlsEnabled = true
+        scene.add(player)
+
+        const cam_player = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000)
+        player.add(cam_player)
+        cam_player.rotation.set(.3, Math.PI, 0)
+        cam_player.position.set(0, 5, -10)
+
+        function render(time) {
+            requestAnimationFrame(render)
+
+            player.update(time)
+
+            renderer.render(scene, cam_player)
+        }
+
+        requestAnimationFrame(render)
+
+    </script>
+
+</body>
+
+</html>
