@@ -8,7 +8,7 @@ class Driver extends THREE.Object3D {
     lights_rear = []
     lightsMat_rear = []
 
-    constructor() {
+    constructor(gui) {
         super()
 
         /* ------------- Geometry ------------ */
@@ -131,9 +131,9 @@ class Driver extends THREE.Object3D {
             this.add(mesh)
 
             if (index < 2) {
-                const light = new THREE.SpotLight(0xffffff, 1)
+                const light = new THREE.SpotLight(0xffffff, this.lightsIntensity_MAX)
                 light.angle = THREE.Math.degToRad(45)
-                light.distance = 100
+                light.distance = 1000
                 light.position.set(position[0], position[1], 1.55)
                 light.target.position.set(position[0], position[1], 10)
                 this.add(light)
@@ -159,11 +159,18 @@ class Driver extends THREE.Object3D {
             } else {
                 // mat.color = 0xff0000
 
-                const light = new THREE.PointLight(0xff0000, 1)
+                const light = new THREE.PointLight(0xff0000, 0)
                 light.castShadow = true
-                light.distance = 1
+                light.distance = 10
                 light.position.set(position[0], position[1], -2.075)
                 this.add(light)
+
+                gui.add(light, 'decay', 0, 2, .1).name('l' + index + '_decay')
+                gui.add(light, 'distance', 0, 2, .1).name('l' + index + '_dist')
+                gui.add(light, 'intensity', 0, 2, .1).name('l' + index + '_inten')
+
+                this.lights_rear.push(light)
+                this.lightsMat_rear.push(mat)
 
                 // const helper = new THREE.PointLightHelper(light)
                 // this.add(helper)
@@ -192,13 +199,23 @@ class Driver extends THREE.Object3D {
         this.speed = 0
         this.turn = 0
 
-        this.speed_ACTUAL = 0
         this.speed_MAX = 5
         this.speedRev_MAX = 2
+
+        this.turn_MAX = .01
 
         this.accel = .025
         this.decel = .1
         this.friction = 0.005
+        
+        this.turnStep = .0001
+        this.turnReset = .00025
+
+        this.braking = false
+
+        this.lightsIntensity = 0
+        this.lightsIntensityStep = 1
+        this.lightsIntensity_MAX = 10
 
         this.rotationIndex = 0
     }
@@ -228,16 +245,38 @@ class Driver extends THREE.Object3D {
                 this._neutraliseSpeed()
             }
 
+            if (key_left && this.turn < this.turn_MAX) {
+                const step = this.turn < 0 ? this.turnReset : this.turnStep
+                this.turn = Math.min(this.turn + step, this.turn_MAX)
+            }
+
+            if (key_right && this.turn > -this.turn_MAX) {
+                const step = this.turn > 0 ? this.turnReset : this.turnStep
+                this.turn = Math.max(this.turn - step, -this.turn_MAX)
+            }
+
+            if (!key_left && !key_right) {
+                if (this.turn > 0) {
+                    this.turn = Math.max(this.turn - this.turnReset, 0)
+                } else if (this.turn < 0) {
+                    this.turn = Math.min(this.turn + this.turnReset, 0)
+                }
+            }
+
         } else {
             this._neutraliseSpeed()
         }
 
         if (key_down && this.speed > 0) {
             this.speed = Math.max(this.speed - this.decel, 0)
-        }
-
-        if (key_up && this.speed < 0) {
+            this.braking = true
+        } else if (key_up && this.speed < 0) {
             this.speed = Math.min(this.speed + this.decel, 0)
+            this.braking = true
+        } else this.braking = false
+
+        if (this.turn != 0) {
+            this.rotation.y += this.turn * this.speed
         }
 
         if (this.speed != 0) {
@@ -247,12 +286,18 @@ class Driver extends THREE.Object3D {
             moveX = Math.sin(angle) * this.speed
         }
 
+        console.log(this.braking)
+        
         this.position.z += moveZ * 0.05
         this.position.x += moveX * 0.05
 
         this.rotationIndex += 10
 
         this._rotateWheels()
+        this._turnWheels()
+
+        this._updateLights()
+        this._brakeLights()
     }
 
     _rotateWheels() {
@@ -262,7 +307,29 @@ class Driver extends THREE.Object3D {
     }
 
     _turnWheels() {
-        
+        this.pivots_FWs.forEach((pivot) => {
+            pivot.rotation.y = this.turn * 44
+        })
+    }
+
+    _updateLights() {
+        if (this.lightsOn) {
+            this.lightsIntensity = Math.min(this.lightsIntensity + this.lightsIntensityStep, this.lightsIntensity_MAX)
+        } else {
+            this.lightsIntensity = Math.max(this.lightsIntensity - this.lightsIntensityStep, 0)
+        }
+
+        this.lights_front.forEach((light) => {
+            light.intensity = this.lightsIntensity
+        })
+    }
+
+    _brakeLights() {
+        const intensity = this.braking ? 1 : 0
+
+        this.lights_rear.forEach((light) => {
+            light.intensity = intensity
+        })
     }
 
     _neutraliseSpeed() {

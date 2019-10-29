@@ -60,7 +60,9 @@
 
         const { canvas, renderer, scene, gui, cam_world, light_dir } = constructScene(params)
 
-        const driver = new Driver()
+        renderer.physicallyCorrectLights = true
+
+        const driver = new Driver(gui)
         driver.controlsEnabled = true
         scene.add(driver)
 
@@ -77,15 +79,15 @@
 
         gui.add(cam, 'currentIndex', { Rear: 0, Left: 1 }).name('Camera')
 
-        light_dir.intensity = 1
+        // light_dir.intensity = .1
 
         function render(time) {
             requestAnimationFrame(render)
 
             driver.update(time)
 
-            // renderer.render(scene, cams[cam.currentIndex])
-            renderer.render(scene, cam_world)
+            renderer.render(scene, cams[cam.currentIndex])
+            // renderer.render(scene, cam_world)
         }
 
         requestAnimationFrame(render)
