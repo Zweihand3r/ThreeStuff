@@ -1,6 +1,7 @@
 /*
 params = {
-    planeSize: 40,
+    planeWidth: 40,
+    planeHeight: 40,
     backgroundColor: 'black',
     enableOrbitControls: false
 }
@@ -11,12 +12,14 @@ constructScene() returns { canvas, renderer, scene, gui, cam_world, light_dir }
 /* ----------------- Construct ---------------- */
 
 function constructScene(params) {
-    let PLANE_SIZE = 40
+    let PLANE_WIDTH = 40
+    let PLANE_HEIGHT = 40
     let BACKGROUND_COLOR = 'black'
     let ENABLE_ORBIT_CONTROLS = false
 
     if (params != undefined) {
-        if (params.planeSize != undefined) PLANE_SIZE = params.planeSize
+        if (params.planeWidth != undefined) PLANE_WIDTH = params.planeWidth
+        if (params.planeHeight != undefined) PLANE_HEIGHT = params.planeHeight
         if (params.backgroundColor != undefined) BACKGROUND_COLOR = params.backgroundColor
         if (params.enableOrbitControls != undefined) ENABLE_ORBIT_CONTROLS = params.enableOrbitControls
     }
@@ -47,12 +50,10 @@ function constructScene(params) {
         texture.wrapS = THREE.RepeatWrapping
         texture.wrapT = THREE.RepeatWrapping
         texture.magFilter = THREE.NearestFilter
-
-        const repeats = PLANE_SIZE / 2
-        texture.repeat.set(repeats, repeats)
+        texture.repeat.set(PLANE_WIDTH / 2, PLANE_HEIGHT / 2)
 
         const mesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(PLANE_SIZE, PLANE_SIZE), 
+            new THREE.PlaneBufferGeometry(PLANE_WIDTH, PLANE_HEIGHT), 
             new THREE.MeshPhongMaterial({ map: texture })
         )
         mesh.receiveShadow = true
@@ -103,4 +104,32 @@ function createAxesHelper(obj, size = 1, name) {
     obj.add(axesHelper)
 
     if (name != undefined) { gui.add(axesHelper, 'visible') }
+}
+
+/* ------------- Keys Listeners ------------ */
+
+let key_up = false
+let key_right = false
+let key_down = false
+let key_left = false
+
+document.addEventListener('keydown', keyDown)
+document.addEventListener('keyup', keyUp)
+
+function keyDown(e) {
+    switch (e.code) {
+        case 'KeyW': if (!key_up) key_up = true; break
+        case 'KeyS': if (!key_down) key_down = true; break
+        case 'KeyA': if (!key_left) key_left = true; break
+        case 'KeyD': if (!key_right) key_right = true; break
+    }
+}
+
+function keyUp(e) {
+    switch (e.code) {
+        case 'KeyW': if (key_up) key_up = false; break
+        case 'KeyS': if (key_down) key_down = false; break
+        case 'KeyA': if (key_left) key_left = false; break
+        case 'KeyD': if (key_right) key_right = false; break
+    }
 }

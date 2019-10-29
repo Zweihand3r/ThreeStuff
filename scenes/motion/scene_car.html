@@ -54,29 +54,37 @@
     <script>
 
         const params = {
+            planeHeight: 200,
             enableOrbitControls: true
         }
 
         const { canvas, renderer, scene, gui, cam_world, light_dir } = constructScene(params)
 
-        const player = new Player()
-        player.position.x = .55
-        scene.add(player)
-
         const driver = new Driver()
+        driver.controlsEnabled = true
         scene.add(driver)
 
-        const cam_player = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000)
-        player.add(cam_player)
-        cam_player.rotation.set(.3, Math.PI, 0)
-        cam_player.position.set(0, 5, -10)
+        const folder = gui.addFolder('CONTROLS')
+        folder.add(driver, 'engineOn').name('Ignition')
+        folder.add(driver, 'lightsOn').name('Lights')
+        folder.open()
 
         cam_world.rotation.set(.3, Math.PI, 0)
         cam_world.position.set(0, 5, -10)
 
+        const cam = { currentIndex: 0 }
+        const cams = [driver.cam_rear, driver.cam_left]
+
+        gui.add(cam, 'currentIndex', { Rear: 0, Left: 1 }).name('Camera')
+
+        light_dir.intensity = 1
+
         function render(time) {
             requestAnimationFrame(render)
 
+            driver.update(time)
+
+            // renderer.render(scene, cams[cam.currentIndex])
             renderer.render(scene, cam_world)
         }
 

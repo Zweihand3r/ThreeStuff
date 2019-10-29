@@ -72,6 +72,14 @@ class Player extends THREE.Object3D {
         this.pivot_RA.add(rightArm)
 
 
+        /* -------------- Camera -------------- */
+
+        this.cam_rear = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000)
+        this.add(this.cam_rear)
+        this.cam_rear.rotation.set(.3, Math.PI, 0)
+        this.cam_rear.position.set(0, 5, -10)
+
+
         /* ------------- Controls ------------- */
 
         this.speed = 0
@@ -150,31 +158,5 @@ class Player extends THREE.Object3D {
         if (this.speed > 0) this.speed -= 1
         else if (this.speed < 0) this.speed += 1
         else this.speed = 0
-    }
-}
-
-let key_up = false
-let key_right = false
-let key_down = false
-let key_left = false
-
-document.addEventListener('keydown', keyDown)
-document.addEventListener('keyup', keyUp)
-
-function keyDown(e) {
-    switch (e.code) {
-        case 'KeyW': if (!key_up) key_up = true; break
-        case 'KeyS': if (!key_down) key_down = true; break
-        case 'KeyA': if (!key_left) key_left = true; break
-        case 'KeyD': if (!key_right) key_right = true; break
-    }
-}
-
-function keyUp(e) {
-    switch (e.code) {
-        case 'KeyW': if (key_up) key_up = false; break
-        case 'KeyS': if (key_down) key_down = false; break
-        case 'KeyA': if (key_left) key_left = false; break
-        case 'KeyD': if (key_right) key_right = false; break
     }
 }

@@ -62,17 +62,12 @@
         player.controlsEnabled = true
         scene.add(player)
 
-        const cam_player = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000)
-        player.add(cam_player)
-        cam_player.rotation.set(.3, Math.PI, 0)
-        cam_player.position.set(0, 5, -10)
-
         function render(time) {
             requestAnimationFrame(render)
 
             player.update(time)
 
-            renderer.render(scene, cam_player)
+            renderer.render(scene, player.cam_rear)
         }
 
         requestAnimationFrame(render)
