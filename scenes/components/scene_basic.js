@@ -14,7 +14,7 @@ constructScene() returns { canvas, renderer, scene, gui, cam_world, light_dir }
 function constructScene(params) {
     let PLANE_WIDTH = 40
     let PLANE_HEIGHT = 40
-    let BACKGROUND_COLOR = 'black'
+    let BACKGROUND_COLOR = 'rgb(88%, 88%, 88%)'
     let ENABLE_ORBIT_CONTROLS = false
 
     if (params != undefined) {
@@ -61,10 +61,8 @@ function constructScene(params) {
         scene.add(mesh)
     }
 
-    {
-        const light = new THREE.AmbientLight(0xffffff, .2)
-        scene.add(light)
-    }
+    const light_amb = new THREE.AmbientLight(0xffffff, .2)
+    scene.add(light_amb)
 
     const light_dir = new THREE.DirectionalLight(0xffffff, .8)
     light_dir.castShadow = true
@@ -85,10 +83,18 @@ function constructScene(params) {
     light_dir.shadow.camera.far = 50
     light_dir.shadow.bias = 0.001
 
-    return { canvas, renderer, scene, gui, cam_world, light_dir }
+    return { canvas, renderer, scene, gui, cam_world, light_dir, light_amb }
 }
 
 /* ----------------- Helpers ---------------- */
+
+function createPositionGui(vector3, name, limit = 100, step = 1) {
+    const folder = gui.addFolder(name)
+    folder.add(vector3, 'x', -limit, limit, step)
+    folder.add(vector3, 'y', -limit, limit, step)
+    folder.add(vector3, 'z', -limit, limit, step)
+    folder.open()
+}
 
 function createGridHelper(obj, size = 32, name) {
     const gridHelper = new THREE.GridHelper(size, size)
