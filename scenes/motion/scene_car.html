@@ -29,6 +29,33 @@
             color: white;
             font-family: monospace;
         }
+
+        #speedometer {
+            position: absolute;
+            width: 10em; height: 10em;
+            left: 1em; bottom: 1em;
+            background: rgba(0, 0, 0, .8);
+            border-radius: 50%;
+        }
+
+        #speedIndicator {
+            position: absolute;
+            left: 4.9em; top: 1em;
+            width: .2em; height: 4em;
+            background:rgb(255, 255, 255);
+            transform-origin: 50% 100%;
+        }
+
+        #speedIndicatorBase {
+            position: absolute;
+            left: 4em; top: 4em;
+            width: 2em; height: 2em;
+            border-radius: 1em;
+            background:rgb(255, 255, 255);
+            color: black;
+            text-align: center;
+            line-height: 2em;    
+        }
     </style>
 </head>
 
@@ -40,6 +67,11 @@
         s - Brake / Reverse<br>
         a - Turn Left<br>
         d - Turn Right<br>
+    </div>
+
+    <div id="speedometer">
+        <div id="speedIndicator"></div>
+        <div id="speedIndicatorBase"></div>
     </div>
 
     <!-- Scripts -->
@@ -85,6 +117,19 @@
 
         folder_world.add(worldControls, 'isDaytime', { Day: 1, Night: 0 }).name('Time')
         folder_world.open()
+
+
+        /* ------------- Speedometer --------------- */
+
+        const speedIndicator = document.querySelector("#speedIndicator")
+        const speedText = document.querySelector("#speedIndicatorBase")
+
+        function updateSpeedometer() {
+            const speed = driver.speed
+            const angle = THREE.Math.lerp(-120, 120, THREE.Math.smoothstep(speed, 0, 5))
+            speedIndicator.style.transform = "rotate(" + angle + "deg)"
+            speedText.innerHTML = Math.abs(Math.floor(speed * 10))
+        }
 
 
         /* ---------------- Light ------------------ */
@@ -158,6 +203,7 @@
             requestAnimationFrame(render)
 
             driver.update(time)
+            updateSpeedometer()
 
             updateDayNightCycle()
             updateDirLight()
