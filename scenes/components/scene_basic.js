@@ -46,7 +46,7 @@ function constructScene(params) {
 
     {
         const loader = new THREE.TextureLoader()
-        const texture = loader.load('../../assets/images/checker.png')
+        const texture = loader.load('../assets/images/checker.png')
         texture.wrapS = THREE.RepeatWrapping
         texture.wrapT = THREE.RepeatWrapping
         texture.magFilter = THREE.NearestFilter
