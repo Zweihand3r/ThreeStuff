@@ -30,6 +30,7 @@ class Driver extends THREE.Object3D {
         this.speedRev_MAX = 2
 
         this.turn_MAX = .01
+        this.turn_ACTUAL = 0
 
         this.accel = .025
         this.decel = .065
@@ -104,8 +105,12 @@ class Driver extends THREE.Object3D {
             this.braking = true
         } else this.braking = false
 
+        /* Adjusting turn to accomodate high speeds */
+        const turn_OFFSET = THREE.Math.lerp(1, .4, THREE.Math.smoothstep(this.speed, 2, 5))
+        this.turn_ACTUAL = this.turn * turn_OFFSET
+
         if (this.turn != 0) {
-            this.rotation.y += this.turn * this.speed
+            this.rotation.y += this.turn_ACTUAL * this.speed
         }
 
         if (this.speed != 0) {
@@ -139,7 +144,7 @@ class Driver extends THREE.Object3D {
 
     _turnWheels() {
         this.pivots_FWs.forEach((pivot) => {
-            pivot.rotation.y = this.turn * 44
+            pivot.rotation.y = this.turn_ACTUAL * 44
         })
     }
 
