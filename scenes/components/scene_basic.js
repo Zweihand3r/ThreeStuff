@@ -3,7 +3,8 @@ params = {
     planeWidth: 40,
     planeHeight: 40,
     backgroundColor: 'black',
-    enableOrbitControls: false
+    enableOrbitControls: false,
+    FLAGS: ["humanRef"] // Not implemented yet
 }
 
 constructScene() returns { canvas, renderer, scene, gui, cam_world, light_dir }
@@ -67,7 +68,7 @@ function constructScene(params) {
     const light_dir = new THREE.DirectionalLight(0xffffff, .8)
     light_dir.castShadow = true
     light_dir.position.set(0, 10, 0)
-    light_dir.target.position.set(-4, 0, -4)
+    light_dir.target.position.set(4, 0, 4)
     light_dir.shadow.mapSize.width = 2048
     light_dir.shadow.mapSize.height = 2048
 

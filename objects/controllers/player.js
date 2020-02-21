@@ -6,6 +6,8 @@ class Player extends THREE.Object3D {
     pivot_LA = new THREE.Object3D()
     pivot_RA = new THREE.Object3D()
 
+    cam_rear_OFFSET = new THREE.Vector3(0, 5, -10)
+
     constructor() {
         super()
 
@@ -72,9 +74,17 @@ class Player extends THREE.Object3D {
         this.pivot_RA.add(rightArm)
 
 
-        /* -------------- Camera -------------- */
+        /* -------------- Cameras -------------- */
 
-        this.cam_rear = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000)
+        const params = [45, window.innerWidth / window.innerHeight, .1, 1000]
+
+        this.cam_follow_PIVOT = new THREE.Object3D()
+        this.cam_follow_PIVOT.position.add(this.cam_rear_OFFSET)
+        this.add(this.cam_follow_PIVOT)
+
+        this.cam_follow = new THREE.PerspectiveCamera(...params)
+
+        this.cam_rear = new THREE.PerspectiveCamera(...params)
         this.add(this.cam_rear)
         this.cam_rear.rotation.set(.3, Math.PI, 0)
         this.cam_rear.position.set(0, 5, -10)
@@ -89,6 +99,9 @@ class Player extends THREE.Object3D {
         this.speed_MAX = 10
 
         this.rotationIndex = 0
+
+        /* Used for animating legs when speed is 0 */
+        this.turnTransition = 0
     }
 
     enableControls() { this.controlsEnabled = true }
@@ -140,16 +153,24 @@ class Player extends THREE.Object3D {
 
         this._moveArms()
         this._moveLegs()
+
+        this._updateFollowCamera()
     }
 
     _moveArms() {
-        const speed = this.speed_ACTUAL / 1.5
+        const speed = Math.abs(this.speed_ACTUAL / 1.5)
         this.pivot_LA.rotation.x = Math.sin(THREE.Math.degToRad(this.rotationIndex)) * -speed
         this.pivot_RA.rotation.x = Math.sin(THREE.Math.degToRad(this.rotationIndex)) * speed
     }
 
     _moveLegs() {
-        const speed = this.speed_ACTUAL / 1.5
+        if (Math.abs(this.turn) > 0 && this.turnTransition <= Math.abs(this.turn)) {
+            this.turnTransition = Math.min(this.turnTransition + .2, Math.abs(this.turn))
+        } else if (this.turnTransition > 0) {
+            this.turnTransition = Math.max(this.turnTransition - .2, 0)
+        }
+
+        const speed = Math.max(Math.abs(this.speed_ACTUAL) / 1.5, this.turnTransition / 3.5)
         this.pivot_LL.rotation.x = Math.sin(THREE.Math.degToRad(this.rotationIndex)) * speed
         this.pivot_RL.rotation.x = Math.sin(THREE.Math.degToRad(this.rotationIndex)) * -speed
     }
@@ -158,5 +179,11 @@ class Player extends THREE.Object3D {
         if (this.speed > 0) this.speed -= 1
         else if (this.speed < 0) this.speed += 1
         else this.speed = 0
+    }
+
+    _updateFollowCamera() {
+        const updatedPos = new THREE.Vector3().setFromMatrixPosition(this.cam_follow_PIVOT.matrixWorld)
+        this.cam_follow.position.lerp(updatedPos, .1)
+        this.cam_follow.lookAt(this.position.x, 2.5, this.position.z)
     }
 }
