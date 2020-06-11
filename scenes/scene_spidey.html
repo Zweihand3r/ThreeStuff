@@ -6,30 +6,7 @@
     <meta name="viewport" content="width=device-width, inittial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=chrome" />
     <title>Spider Bot Controller</title>
-
-    <style>
-        html,
-        body {
-            margin: 0;
-            height: 100%;
-        }
-
-        #canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        #info {
-            position: absolute;
-            left: 1em;
-            top: 1em;
-            background: rgba(0, 0, 0, .8);
-            padding: .5em;
-            color: white;
-            font-family: monospace;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="./components/scene_basic.css">
 </head>
 
 <body>
@@ -44,7 +21,7 @@
 
     <!-- Scripts -->
     <script src="../res/three.js/three.js"></script>
-    <script src="../res/three.js/OrbitControls.js"></script>
+    <script src="../res/three.js/extras/controls/OrbitControls.js"></script>
     <script src="../res/dat.gui/dat.gui.min.js"></script>
 
     <script src="../objects/controllers/spidey.js"></script>
@@ -53,25 +30,24 @@
     <script>
 
         const params = {
-            enableOrbitControls: true
+            shadowMapSizeMult: 8,
+            flags: ["ORBIT_CONTROLS", "DAYNIGHT_CYCLE"]
         }
 
-        const { canvas, renderer, scene, gui, cam_world, light_dir } = constructScene(params)
+        const { canvas, renderer, scene, gui, cam_world, light_dir, light_amb } = constructScene(params)
 
         const spidey = new Spidey(gui)
         spidey.enableControls()
         scene.add(spidey)
 
-        function render(time) {
-            requestAnimationFrame(render)
+        setupDirLightTarget(spidey)
+        renderCam = spidey.cam_follow
 
+        /* ---------------- Update ----------------- */
+
+        update = function (time) {
             spidey.update(time)
-
-            renderer.render(scene, spidey.cam_follow)
-            // renderer.render(scene, cam_world)
         }
-
-        requestAnimationFrame(render)
 
     </script>
 

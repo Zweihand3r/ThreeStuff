@@ -6,57 +6,7 @@
     <meta name="viewport" content="width=device-width, inittial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=chrome" />
     <title>Car Controller</title>
-
-    <style>
-        html,
-        body {
-            margin: 0;
-            height: 100%;
-        }
-
-        #canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        #info {
-            position: absolute;
-            left: 1em;
-            top: 1em;
-            background: rgba(0, 0, 0, .8);
-            padding: .5em;
-            color: white;
-            font-family: monospace;
-        }
-
-        #speedometer {
-            position: absolute;
-            width: 10em; height: 10em;
-            left: 1em; bottom: 1em;
-            background: rgba(0, 0, 0, .8);
-            border-radius: 50%;
-        }
-
-        #speedIndicator {
-            position: absolute;
-            left: 4.9em; top: 1em;
-            width: .2em; height: 4em;
-            background:rgb(255, 255, 255);
-            transform-origin: 50% 100%;
-        }
-
-        #speedIndicatorBase {
-            position: absolute;
-            left: 4em; top: 4em;
-            width: 2em; height: 2em;
-            border-radius: 1em;
-            background:rgb(255, 255, 255);
-            color: black;
-            text-align: center;
-            line-height: 2em;    
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="./components/scene_basic.css">
 </head>
 
 <body>
@@ -76,7 +26,7 @@
 
     <!-- Scripts -->
     <script src="../res/three.js/three.js"></script>
-    <script src="../res/three.js/OrbitControls.js"></script>
+    <script src="../res/three.js/extras/controls/OrbitControls.js"></script>
     <script src="../res/dat.gui/dat.gui.min.js"></script>
 
     <script src="../objects/controllers/driver.js"></script>
@@ -86,39 +36,40 @@
 
         const params = {
             planeHeight: 200,
-            enableOrbitControls: true
+            flags: ["ORBIT_CONTROLS", "DAYNIGHT_CYCLE"]
         }
 
         const { canvas, renderer, scene, gui, cam_world, light_dir, light_amb } = constructScene(params)
-
-        renderer.physicallyCorrectLights = true
 
         const driver = new Driver(gui)
         driver.controlsEnabled = true
         scene.add(driver)
 
+        setupDirLightTarget(driver)
+
+        const carControls = {
+            camCurrentIndex: "0"
+        }
+
         const folder_car = gui.addFolder('CAR CONTROLS')
         folder_car.add(driver, 'engineOn').name('Ignition')
         folder_car.add(driver, 'lightsOn').name('Lights')
-        folder_car.open()
-        
-        const worldControls = {
-            camCurrentIndex: "0",
-            isDaytime: "1"
-        }
-
-        const folder_world = gui.addFolder('WORLD CONTROLS')
 
         const cams = [driver.cam_follow, driver.cam_chase, driver.cam_hood, driver.cam_rear, driver.cam_left, driver.cam_top, driver.cam_front, cam_world]
-        folder_world.add(worldControls, 'camCurrentIndex', { 
+        folder_car.add(carControls, 'camCurrentIndex', { 
             Follow: 0, Chase: 1, Hood: 2, Rear: 3, Side: 4, Top: 5, Front: 6, World: 7 
-        }).name('Camera')
+        }).name('Camera').onChange(updateRenderCam)
+        folder_car.open()
 
-        folder_world.add(worldControls, 'isDaytime', { Day: 1, Night: 0 }).name('Time')
-        folder_world.open()
+        /* Set to follow on init */
+        updateRenderCam()
+
+        function updateRenderCam() {
+            renderCam = cams[carControls.camCurrentIndex]
+        }
 
 
-        /* ------------- Speedometer --------------- */
+        /* -------------- Speedometer -------------- */
 
         const speedIndicator = document.querySelector("#speedIndicator")
         const speedText = document.querySelector("#speedIndicatorBase")
@@ -129,88 +80,15 @@
             speedIndicator.style.transform = "rotate(" + angle + "deg)"
             speedText.innerHTML = Math.abs(Math.floor(speed * 10))
         }
+        
 
+        /* ---------------- Update ----------------- */
 
-        /* ---------------- Light ------------------ */
-
-        let light_dir_OFFSET = new THREE.Vector3(4, 0, 4)
-
-        function updateDirLight() {
-            light_dir.target.position.copy(driver.position)
-            light_dir.position.set(
-                driver.position.x - light_dir_OFFSET.x,
-                light_dir.position.y - light_dir_OFFSET.y,
-                driver.position.z - light_dir_OFFSET.z
-            )
-        }
-
-
-        /* -------------- Day / Night -------------- */
-
-        let DayNight_Bg = .88
-        const DayNight_Bg_MAX = .88
-        const DayNight_Bg_MIN = .08
-        const DayNight_Bg_STEP = .04
-
-        let DayNight_Dir = 2.6
-        const DayNight_Dir_MAX = 2.6
-        const DayNight_Dir_MIN = .4
-        const DayNight_Dir_STEP = .11
-
-        let DayNight_Amb = .4
-        const DayNight_Amb_MAX = .4
-        const DayNight_Amb_MIN = .1
-        const DayNight_Amb_STEP = .015
-
-        function updateDayNightCycle() {
-            if (worldControls.isDaytime == "1") {
-                if (DayNight_Bg < DayNight_Bg_MAX) {
-                    DayNight_Bg = Math.min(DayNight_Bg + DayNight_Bg_STEP, DayNight_Bg_MAX)
-                }
-                
-                if (DayNight_Dir < DayNight_Dir_MAX) {
-                    DayNight_Dir = Math.min(DayNight_Dir + DayNight_Dir_STEP, DayNight_Dir_MAX)
-                }
-
-                if (DayNight_Amb < DayNight_Amb_MAX) {
-                    DayNight_Amb = Math.min(DayNight_Amb + DayNight_Amb_STEP, DayNight_Amb_MAX)
-                }
-            
-            } else {
-                if (DayNight_Bg > DayNight_Bg_MIN) {
-                    DayNight_Bg = Math.max(DayNight_Bg - DayNight_Bg_STEP, DayNight_Bg_MIN)
-                }
-                
-                if (DayNight_Dir > DayNight_Dir_MIN) {
-                    DayNight_Dir = Math.max(DayNight_Dir - DayNight_Dir_STEP, DayNight_Dir_MIN)
-                }
-
-                if (DayNight_Amb > DayNight_Amb_MIN) {
-                    DayNight_Amb = Math.max(DayNight_Amb - DayNight_Amb_STEP, DayNight_Amb_MIN)
-                }
-            }
-
-            scene.background = new THREE.Color(DayNight_Bg, DayNight_Bg, DayNight_Bg)
-
-            light_dir.intensity = DayNight_Dir
-            light_amb.intensity = DayNight_Amb
-        }
-
-
-
-        function render(time) {
-            requestAnimationFrame(render)
-
+        update = function(time) {
             driver.update(time)
+
             updateSpeedometer()
-
-            updateDayNightCycle()
-            updateDirLight()
-
-            renderer.render(scene, cams[worldControls.camCurrentIndex])
         }
-
-        requestAnimationFrame(render)
 
     </script>
 

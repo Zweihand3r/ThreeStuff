@@ -6,32 +6,65 @@
     <meta name="viewport" content="width=device-width, inittial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=chrome" />
     <title>Three Stuff</title>
+    <!-- <link rel="stylesheet" type="text/css" href="./scenes/components/scene_basic.c∂ss"> -->
 
     <style>
-        html,
-        body {
+
+        html, body {
             margin: 0;
             height: 100%;
         }
 
-        #c {
+        #canvas {
             width: 100%;
             height: 100%;
             display: block;
         }
+
+        #content {
+            position: absolute;
+            left: 1em; top: 1em; 
+            right: 1em; bottom: 70%;
+            background: rgba(0, 0, 0, 0);
+            color: white;
+        }
+
+        /* unvisited link */
+        a:link { color: white; }
+
+        /* visited link */
+        a:visited { color: white; }
+
+        /* mouse over link */
+        a:hover { color: rgb(245, 175, 106); }
+
+        /* selected link */
+        a:active { color: rgb(245, 175, 106); }
+
     </style>
 </head>
 
 <body>
-    <center>
-        <font face="verdana">
-            <hr>Some random stuff with primitive geometry using three.js<hr><br>
-            -- CONTROLLERS --<br>
-            <a href="./scenes/scene_human.html">Human</a><br>
-            <a href="./scenes/scene_spidey.html">Spider Bot</a><br>
-            <a href="./scenes/scene_car.html">Car</a><br>
-        </font>
-    </center>
+    <canvas id="canvas"></canvas>
+
+    <script src="./res/three.js/three.js"></script>
+    <script src="./res/three.js/extras/objects/Lensflare.js"></script>
+    <script src="./res/dat.gui/dat.gui.min.js"></script>
+    <script src="./main.js"></script>
+
+    <div id="content">
+        <center>
+            <font face="verdana">
+                <hr>Some random stuff with primitive geometry using three.js<hr><br>
+                -- CONTROLLERS --<br>
+                <a href="./scenes/scene_human.html">Human</a><br>
+                <a href="./scenes/scene_car.html">Car</a><br>
+                <a href="./scenes/scene_spidey.html">Spider Bot</a><br>
+                <a href="./scenes/scene_ball.html">Ball</a><br>
+                <!-- <a href="./scenes/scene_heli.html">Helicopter</a><br> -->
+            </font>
+        </center>
+    </div>
 </body>
 
 </html>

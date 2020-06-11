@@ -7,6 +7,7 @@ class Player extends THREE.Object3D {
     pivot_RA = new THREE.Object3D()
 
     cam_rear_OFFSET = new THREE.Vector3(0, 5, -10)
+    cam_overhead_OFFSET = new THREE.Vector3(0, 10, -7.5)
 
     constructor() {
         super()
@@ -47,11 +48,27 @@ class Player extends THREE.Object3D {
         this.add(body)
 
         /* Head */
-        const headGeo = new THREE.BoxBufferGeometry(.49, .49, .4)
-        const head = new THREE.Mesh(headGeo, mat)
-        head.castShadow = true
-        head.position.y = 1.249
-        this.add(head)
+        const headGeo = new THREE.BoxBufferGeometry(.49, .49, .33)
+        this.head = new THREE.Mesh(headGeo, mat)
+        this.head.castShadow = true
+        this.head.position.y = 1.249
+        this.add(this.head)
+
+        /* Hair */
+        const hairGeo = new THREE.BoxBufferGeometry(.48, .49, .32)
+        const hairMat = new THREE.MeshPhongMaterial({ color: 0x454545 })
+        const hair = new THREE.Mesh(hairGeo, hairMat)
+        hair.position.set(0, .025, -.01)
+        this.head.add(hair)
+
+        /* Eyes */
+        const eyePositions = [[ .1, .05, .165 ], [-.1, .05, .165]]
+        const eyeGeo = new THREE.BoxBufferGeometry(.075, .075, .05)
+        eyePositions.forEach(position => {
+            const eye = new THREE.Mesh(eyeGeo, mat)
+            eye.position.set(...position)
+            this.head.add(eye)
+        })
 
         /* Left Arm */
         this.pivot_LA.position.set(.35, 1, 0)
@@ -83,6 +100,10 @@ class Player extends THREE.Object3D {
         this.add(this.cam_follow_PIVOT)
 
         this.cam_follow = new THREE.PerspectiveCamera(...params)
+
+        this.cam_overhead = new THREE.PerspectiveCamera(...params)
+        this.cam_overhead.rotation.set(0, Math.PI, 0)
+        this.cam_overhead.position.add(this.cam_overhead_OFFSET)
 
         this.cam_rear = new THREE.PerspectiveCamera(...params)
         this.add(this.cam_rear)
@@ -116,7 +137,7 @@ class Player extends THREE.Object3D {
                 this.speed += 1
             }
 
-            if (key_down && this.speed > -this.speed_MAX) {
+            if (key_down && this.speed > -this.speed_MAX / 2) {
                 this.speed -= 1
             }
 
@@ -151,10 +172,21 @@ class Player extends THREE.Object3D {
 
         this.rotationIndex += 10
 
+        this._rotateHead()
         this._moveArms()
         this._moveLegs()
 
-        this._updateFollowCamera()
+        this._updateCameras()
+    }
+
+    _rotateHead() {
+        if (this.turnTransition < this.turn) {
+            this.turnTransition = Math.min(this.turnTransition + .1, this.turn)
+        } else {
+            this.turnTransition = Math.max(this.turnTransition - .1, this.turn)
+        }
+
+        this.head.rotation.y = THREE.Math.degToRad(15) * this.turnTransition
     }
 
     _moveArms() {
@@ -164,13 +196,7 @@ class Player extends THREE.Object3D {
     }
 
     _moveLegs() {
-        if (Math.abs(this.turn) > 0 && this.turnTransition <= Math.abs(this.turn)) {
-            this.turnTransition = Math.min(this.turnTransition + .2, Math.abs(this.turn))
-        } else if (this.turnTransition > 0) {
-            this.turnTransition = Math.max(this.turnTransition - .2, 0)
-        }
-
-        const speed = Math.max(Math.abs(this.speed_ACTUAL) / 1.5, this.turnTransition / 3.5)
+        const speed = Math.max(Math.abs(this.speed_ACTUAL) / 1.5, Math.abs(this.turnTransition) / 3.5)
         this.pivot_LL.rotation.x = Math.sin(THREE.Math.degToRad(this.rotationIndex)) * speed
         this.pivot_RL.rotation.x = Math.sin(THREE.Math.degToRad(this.rotationIndex)) * -speed
     }
@@ -181,9 +207,19 @@ class Player extends THREE.Object3D {
         else this.speed = 0
     }
 
-    _updateFollowCamera() {
-        const updatedPos = new THREE.Vector3().setFromMatrixPosition(this.cam_follow_PIVOT.matrixWorld)
-        this.cam_follow.position.lerp(updatedPos, .1)
-        this.cam_follow.lookAt(this.position.x, 2.5, this.position.z)
+    _updateCameras() {
+        {
+            /* Follow */
+            const updatedPos = new THREE.Vector3().setFromMatrixPosition(this.cam_follow_PIVOT.matrixWorld)
+            this.cam_follow.position.lerp(updatedPos, .1)
+            this.cam_follow.lookAt(this.position.x, 2.5, this.position.z)
+        }
+
+        {
+            /* Overhead */
+            const updatedPos = new THREE.Vector3().copy(this.position).add(this.cam_overhead_OFFSET)
+            this.cam_overhead.position.lerp(updatedPos, .01)
+            this.cam_overhead.lookAt(this.position)
+        }
     }
 }
