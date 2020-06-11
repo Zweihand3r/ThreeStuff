@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, inittial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=chrome" />
+    <title>Ball Controller</title>
+    <link rel="stylesheet" type="text/css" href="./components/scene_basic.css">
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div id="info">
+        w - Forward<br>
+        s - Back<br>
+        a - Left<br>
+        d - Right<br>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../res/three.js/three.js"></script>
+    <script src="../res/three.js/extras/controls/OrbitControls.js"></script>
+    <script src="../res/dat.gui/dat.gui.min.js"></script>
+
+    <script src="../objects/controllers/ball.js"></script>
+    <script src="./components/scene_basic.js"></script>
+    
+    <script>
+
+        const planeSize = 20
+
+        const params = {
+            planeWidth: planeSize,
+            planeHeight: planeSize,
+            shadowMapSizeMult: 4,
+            flags: ["ORBIT_CONTROLS", "DAYNIGHT_CYCLE"]
+        }
+
+        const { canvas, renderer, scene, gui, cam_world, light_dir, light_amb } = constructScene(params)
+
+        const ball = new Ball(planeSize, gui)
+        ball.enableControls()
+        scene.add(ball)
+
+        /*gui.add(ball, 'rollSpeed_OFFSET', 0, .2, .005)*/
+
+        setupDirLightTarget(ball.body)
+        renderCam = ball.cam_overhead
+
+        /* ---------------- Update ----------------- */
+
+        update = function (time) {
+            ball.update(time)
+        }
+
+    </script>
+
+</body>
+
+</html>
