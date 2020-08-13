@@ -31,6 +31,7 @@ function constructScene(params) {
     let PLANE_WIDTH = 40
     let PLANE_HEIGHT = 40
     let BACKGROUND_COLOR = 'rgb(88%, 88%, 88%)'
+    let SHADOW_SIZE = 5
     let SHADOW_MAP_SIZE_MULT = 2
     let ENABLE_ORBIT_CONTROLS = false
     let ENABLE_DAYNIGHT_CYCLE = false
@@ -39,6 +40,7 @@ function constructScene(params) {
         if (params.planeWidth != undefined) PLANE_WIDTH = params.planeWidth
         if (params.planeHeight != undefined) PLANE_HEIGHT = params.planeHeight
         if (params.backgroundColor != undefined) BACKGROUND_COLOR = params.backgroundColor
+        if (params.shadowSize !== undefined) SHADOW_SIZE = params.shadowSize
         if (params.shadowMapSizeMult != undefined) SHADOW_MAP_SIZE_MULT = params.shadowMapSizeMult
 
         if (params.flags != undefined) {
@@ -91,7 +93,7 @@ function constructScene(params) {
         scene.add(mesh)
     }
 
-    const { light_amb, light_dir } = initDayNightCycle(scene, SHADOW_MAP_SIZE_MULT)
+    const { light_amb, light_dir } = initDayNightCycle(scene, SHADOW_SIZE, SHADOW_MAP_SIZE_MULT)
     if (ENABLE_DAYNIGHT_CYCLE) {
         folder_scene.add(scene_controls, "isDaytime", { Day: 1, Night: 0 }).name("Time")
         _renderActions.push(updateDayNightCycle)
@@ -156,7 +158,7 @@ const DayNight_Amb_MAX = .4
 const DayNight_Amb_MIN = .1
 const DayNight_Amb_STEP = .015
 
-function initDayNightCycle(scene, shadowMapSizeMult) {
+function initDayNightCycle(scene, shadowSize, shadowMapSizeMult) {
     const light_amb = new THREE.AmbientLight(0xffffff, DayNight_Amb)
     scene.add(light_amb)
 
@@ -170,7 +172,7 @@ function initDayNightCycle(scene, shadowMapSizeMult) {
     scene.add(light_dir)
     scene.add(light_dir.target)
 
-    const d = 50
+    const d = shadowSize / 2
     light_dir.shadow.camera.left = -d
     light_dir.shadow.camera.right = d
     light_dir.shadow.camera.top = d
